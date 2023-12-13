@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
+	"github.com/harley9293/data-shaper/internal/converter"
 	"github.com/spf13/cobra"
 )
 
 var create bool
 var export bool
-
 var excelCmd = &cobra.Command{
 	Use:   "excel",
 	Short: "excel file conversion and generation",
@@ -20,11 +21,32 @@ var excelCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(excelCmd)
+var protoPath string
+var excelPath string
+var createCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Create an Excel file from a proto file",
+	Long:  `Create an Excel file from a proto file.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// 调用转换逻辑
+		err := converter.ProtoToExcel(protoPath, excelPath)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Excel file created successfully at", excelPath)
+		return nil
+	},
+}
 
+func init() {
 	excelCmd.Flags().BoolVarP(&create, "create", "c", false, "create")
 	excelCmd.Flags().BoolVarP(&export, "export", "e", false, "export")
-
 	excelCmd.DisableFlagsInUseLine = true
+	rootCmd.AddCommand(excelCmd)
+
+	createCmd.Flags().StringVar(&protoPath, "proto", "", "Path to the proto file")
+	createCmd.MarkFlagRequired("proto")
+	createCmd.Flags().StringVar(&excelPath, "excel", "", "Path for the resulting Excel file")
+	createCmd.MarkFlagRequired("excel")
+	excelCmd.AddCommand(createCmd)
 }

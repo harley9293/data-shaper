@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package Test;
+
+message TestSheet1Config
+{
+  // @name 测试字段一
+  int32 test_field_1 = 1;
+  // @name 测试字段二
+  string test_field_2 = 2;
+}
+
+message TestSheet2Config
+{
+  // @name 测试字段三
+  int32 test_field_3 = 1;
+  // @name 测试字段四
+  string test_field_4 = 2;
+}
+
+// @wrapper 测试配置
+message TestConfig
+{
+  // @name 测试页签一
+  repeated TestSheet1Config test_sheet_1_config = 1;
+  // @name 测试页签二
+  repeated TestSheet2Config test_sheet_2_config = 2;
+}
