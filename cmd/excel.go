@@ -39,14 +39,12 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	excelCmd.Flags().BoolVarP(&create, "create", "c", false, "create")
-	excelCmd.Flags().BoolVarP(&export, "export", "e", false, "export")
-	excelCmd.DisableFlagsInUseLine = true
-	rootCmd.AddCommand(excelCmd)
-
 	createCmd.Flags().StringVar(&protoPath, "proto", "", "Path to the proto file")
 	createCmd.MarkFlagRequired("proto")
 	createCmd.Flags().StringVar(&excelPath, "excel", "", "Path for the resulting Excel file")
 	createCmd.MarkFlagRequired("excel")
 	excelCmd.AddCommand(createCmd)
+
+	excelCmd.DisableFlagsInUseLine = true
+	rootCmd.AddCommand(excelCmd)
 }
