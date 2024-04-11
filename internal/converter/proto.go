@@ -49,7 +49,11 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 		comment := strings.TrimSpace(*md.GetSourceInfo().LeadingComments)
 
 		if strings.Contains(comment, "@wrapper") {
-			util.excelFileName = comment[strings.Index(comment, "@wrapper")+9:] + ".xlsx"
+			if comment == "@wrapper" {
+				util.excelFileName = md.GetName() + ".xlsx"
+			} else {
+				util.excelFileName = comment[strings.Index(comment, "@wrapper")+9:] + ".xlsx"
+			}
 			util.codeName = md.GetName()
 
 			for _, sheet := range md.GetFields() {
@@ -58,7 +62,7 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 					return errors.New("no sheet name found in proto file")
 				}
 
-				sheetName := sheetComment[strings.Index(sheetComment, "@name")+6:]
+				sheetName := "#" + sheetComment[strings.Index(sheetComment, "@name")+6:]
 				util.sheetMap[sheetName] = &sheetUtil{fieldMap: make(map[string]*FieldUtil), codeName: strings.Split(sheet.GetName(), "_")[1]}
 
 				msgName := sheet.GetMessageType().GetFullyQualifiedName()
