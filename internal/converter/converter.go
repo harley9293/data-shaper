@@ -52,9 +52,13 @@ func ExcelToCfg(protoFilePath string, excelFilePath string, cfgOutputPath string
 		fileContents += fmt.Sprintf("[%s]\n", sheet.codeName)
 		fileContents += fmt.Sprintf("Size = %d\n\n", sheet.valueSize)
 
+		fieldOrder := make([]string, len(sheet.fieldMap))
+		for fieldName, field := range sheet.fieldMap {
+			fieldOrder[field.index] = fieldName
+		}
 		for i := 0; i < sheet.valueSize; i++ {
-			for _, field := range sheet.fieldMap {
-				fileContents += fmt.Sprintf("%s_%d = %s\n", field.codeName, i, field.values[i])
+			for _, fieldName := range fieldOrder {
+				fileContents += fmt.Sprintf("%s_%d = %s\n", sheet.fieldMap[fieldName].codeName, i, sheet.fieldMap[fieldName].values[i])
 			}
 			fileContents += "\n"
 		}
