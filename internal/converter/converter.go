@@ -41,5 +41,10 @@ func ExcelToJson(protoFilePath string, excelFilePath string, jsonOutputPath stri
 		return err
 	}
 
+	err = util.LoadData(excelFilePath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

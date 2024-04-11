@@ -4,25 +4,28 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jhump/protoreflect/desc/protoparse"
+	"github.com/xuri/excelize/v2"
 	"strings"
 	"unicode"
 )
 
 type FieldUtil struct {
-	index int
+	index  int
+	values []string
 }
 
 type sheetUtil struct {
-	fieldMap map[string]FieldUtil
+	fieldMap  map[string]*FieldUtil
+	valueSize int
 }
 
 type protoUtil struct {
 	excelFileName string
-	sheetMap      map[string]sheetUtil
+	sheetMap      map[string]*sheetUtil
 }
 
 func (util *protoUtil) Parse(protoFilePath string) error {
-	util.sheetMap = make(map[string]sheetUtil)
+	util.sheetMap = make(map[string]*sheetUtil)
 
 	parse := protoparse.Parser{
 		IncludeSourceCodeInfo: true,
@@ -52,7 +55,7 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 				}
 
 				sheetName := sheetComment[strings.Index(sheetComment, "@name")+6:]
-				util.sheetMap[sheetName] = sheetUtil{fieldMap: make(map[string]FieldUtil)}
+				util.sheetMap[sheetName] = &sheetUtil{fieldMap: make(map[string]*FieldUtil)}
 
 				msgName := sheet.GetMessageType().GetFullyQualifiedName()
 				mmd := fd.FindMessage(msgName)
@@ -71,7 +74,7 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 					if firstSpaceIndex != -1 {
 						fieldName = fieldName[:firstSpaceIndex]
 					}
-					util.sheetMap[sheetName].fieldMap[fieldName] = FieldUtil{index: index}
+					util.sheetMap[sheetName].fieldMap[fieldName] = &FieldUtil{index: index}
 				}
 			}
 
@@ -80,4 +83,53 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 	}
 
 	return errors.New("no wrapper found in proto file")
+}
+
+func (util *protoUtil) LoadData(excelFilePath string) error {
+	f, err := excelize.OpenFile(excelFilePath)
+	if err != nil {
+		return err
+	}
+	defer func(f *excelize.File) {
+		_ = f.Close()
+	}(f)
+
+	// for util.sheetMap
+	for sheetName, _ := range util.sheetMap {
+		if _, ok := util.sheetMap[sheetName]; !ok {
+			continue
+		}
+
+		rows, err := f.GetRows(sheetName)
+		if err != nil {
+			return err
+		}
+
+		if len(rows) < 1 {
+			return errors.New("no data found in excel file")
+		}
+
+		fieldIndexToName := make(map[int]string)
+		for index, cell := range rows[0] {
+			if _, ok := util.sheetMap[sheetName].fieldMap[cell]; !ok {
+				continue
+			}
+
+			fieldIndexToName[index] = cell
+		}
+
+		for rowIndex, row := range rows {
+			if rowIndex == 0 {
+				continue
+			}
+
+			for index, cell := range row {
+				if fieldName, ok := fieldIndexToName[index]; ok {
+					util.sheetMap[sheetName].fieldMap[fieldName].values = append(util.sheetMap[sheetName].fieldMap[fieldName].values, cell)
+				}
+			}
+			util.sheetMap[sheetName].valueSize++
+		}
+	}
+	return nil
 }
