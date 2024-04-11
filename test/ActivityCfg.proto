@@ -1,0 +1,23 @@
+syntax = "proto3";
+package pbjson;
+
+//=================================活动获得角色配置=================================
+// @wrapper ActivityCfg
+message ActivityCfg
+{
+	// @name 活动项配置
+	repeated ActivityItem C_ActivityItem = 1;
+}
+
+message ActivityItem
+{
+	// @name 活动ID
+	// @key
+	int32 ID = 1;
+	// @name 活动名
+	string Name = 2;
+	// @name 活动描述
+	string Desc = 3;
+
+}
+//=================================end 活动获得角色配置=============================

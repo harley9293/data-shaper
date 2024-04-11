@@ -35,5 +35,11 @@ func ProtoToExcel(protoFilePath string, excelFilePath string) error {
 }
 
 func ExcelToJson(protoFilePath string, excelFilePath string, jsonOutputPath string) error {
+	util := protoUtil{}
+	err := util.Parse(protoFilePath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

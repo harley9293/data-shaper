@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"strings"
+	"unicode"
 )
 
 type FieldUtil struct {
@@ -66,6 +67,10 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 					}
 
 					fieldName := fieldComment[strings.Index(fieldComment, "@name")+6:]
+					firstSpaceIndex := strings.IndexFunc(fieldName, unicode.IsSpace)
+					if firstSpaceIndex != -1 {
+						fieldName = fieldName[:firstSpaceIndex]
+					}
 					util.sheetMap[sheetName].fieldMap[fieldName] = FieldUtil{index: index}
 				}
 			}
