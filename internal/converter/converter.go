@@ -72,3 +72,7 @@ func ProtoToExcel(protoFilePath string, excelFilePath string) error {
 
 	return errors.New("no wrapper found in proto file")
 }
+
+func ExcelToJson(protoFilePath string, excelFilePath string, jsonOutputPath string) error {
+	return nil
+}
