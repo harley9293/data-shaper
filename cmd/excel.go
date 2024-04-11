@@ -59,11 +59,11 @@ func ExportCmd() *cobra.Command {
 		Use:   "export",
 		Short: "Export an Excel file to support config file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if exportType != "json" {
-				return errors.New("unsupported export type, only 'json' is supported")
+			if exportType != "cfg" {
+				return errors.New("unsupported export type, only 'cfg' is supported")
 			}
 
-			err := converter.ExcelToJson(protoPath, excelPath, outputPath)
+			err := converter.ExcelToCfg(protoPath, excelPath, outputPath)
 			if err != nil {
 				return err
 			}

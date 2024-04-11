@@ -13,9 +13,9 @@ func TestProtoToExcel(t *testing.T) {
 	}
 }
 
-func TestExcelToJson(t *testing.T) {
-	err := ExcelToJson("../../test/ActivityCfg.proto", "../../test/ActivityCfg.xlsx", "../../test/")
+func TestExcelToCfg(t *testing.T) {
+	err := ExcelToCfg("../../test/ActivityCfg.proto", "../../test/ActivityCfg.xlsx", "../../test/")
 	if err != nil {
-		t.Errorf("ExcelToJson() error = %v", err)
+		t.Errorf("ExcelToCfg() error = %v", err)
 	}
 }
