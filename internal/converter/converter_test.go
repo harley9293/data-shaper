@@ -6,8 +6,8 @@ import (
 )
 
 func TestProtoToExcel(t *testing.T) {
-	_ = os.Remove("../../test/ActivityCfg.xlsx")
-	err := ProtoToExcel("../../test/ActivityCfg.proto", "../../test/")
+	_ = os.Remove("../../test/测试配置.xlsx")
+	err := ProtoToExcel("../../test/test.proto", "../../test/")
 	if err != nil {
 		t.Errorf("ProtoToExcel() error = %v", err)
 	}
