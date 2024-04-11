@@ -10,17 +10,20 @@ import (
 )
 
 type FieldUtil struct {
-	index  int
-	values []string
+	index    int
+	values   []string
+	codeName string
 }
 
 type sheetUtil struct {
 	fieldMap  map[string]*FieldUtil
 	valueSize int
+	codeName  string
 }
 
 type protoUtil struct {
 	excelFileName string
+	codeName      string
 	sheetMap      map[string]*sheetUtil
 }
 
@@ -47,6 +50,7 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 
 		if strings.Contains(comment, "@wrapper") {
 			util.excelFileName = comment[strings.Index(comment, "@wrapper")+9:] + ".xlsx"
+			util.codeName = md.GetName()
 
 			for _, sheet := range md.GetFields() {
 				sheetComment := strings.TrimSpace(*sheet.GetSourceInfo().LeadingComments)
@@ -55,7 +59,7 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 				}
 
 				sheetName := sheetComment[strings.Index(sheetComment, "@name")+6:]
-				util.sheetMap[sheetName] = &sheetUtil{fieldMap: make(map[string]*FieldUtil)}
+				util.sheetMap[sheetName] = &sheetUtil{fieldMap: make(map[string]*FieldUtil), codeName: strings.Split(sheet.GetName(), "_")[1]}
 
 				msgName := sheet.GetMessageType().GetFullyQualifiedName()
 				mmd := fd.FindMessage(msgName)
@@ -74,7 +78,7 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 					if firstSpaceIndex != -1 {
 						fieldName = fieldName[:firstSpaceIndex]
 					}
-					util.sheetMap[sheetName].fieldMap[fieldName] = &FieldUtil{index: index}
+					util.sheetMap[sheetName].fieldMap[fieldName] = &FieldUtil{index: index, codeName: field.GetName()}
 				}
 			}
 

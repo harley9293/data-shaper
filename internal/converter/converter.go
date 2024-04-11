@@ -3,6 +3,7 @@ package converter
 import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
+	"os"
 )
 
 func ProtoToExcel(protoFilePath string, excelFilePath string) error {
@@ -42,6 +43,24 @@ func ExcelToCfg(protoFilePath string, excelFilePath string, cfgOutputPath string
 	}
 
 	err = util.LoadData(excelFilePath)
+	if err != nil {
+		return err
+	}
+
+	fileContents := ""
+	for _, sheet := range util.sheetMap {
+		fileContents += fmt.Sprintf("[%s]\n", sheet.codeName)
+		fileContents += fmt.Sprintf("Size = %d\n\n", sheet.valueSize)
+
+		for i := 0; i < sheet.valueSize; i++ {
+			for _, field := range sheet.fieldMap {
+				fileContents += fmt.Sprintf("%s_%d = %s\n", field.codeName, i, field.values[i])
+			}
+			fileContents += "\n"
+		}
+	}
+
+	err = os.WriteFile(cfgOutputPath+util.codeName+".cfg", []byte(fileContents), 0644)
 	if err != nil {
 		return err
 	}
