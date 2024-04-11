@@ -64,7 +64,7 @@ func ExcelToCfg(protoFilePath string, excelFilePath string, cfgOutputPath string
 		}
 	}
 
-	err = os.WriteFile(cfgOutputPath+util.codeName+".cfg", []byte(fileContents), 0644)
+	err = os.WriteFile(cfgOutputPath+".cfg", []byte(fileContents), 0644)
 	if err != nil {
 		return err
 	}
