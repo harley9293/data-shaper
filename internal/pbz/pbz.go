@@ -20,13 +20,13 @@ func Cmd() *cobra.Command {
 }
 
 func excel() *cobra.Command {
-	var protoPath string
+	var protoFile string
 	var excelPath string
 	cmd := &cobra.Command{
 		Use:   "excel",
 		Short: "create excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			util, err := parseProto(protoPath, excelPath)
+			util, err := parseProto(protoFile, excelPath)
 			if err != nil {
 				return err
 			}
@@ -39,7 +39,7 @@ func excel() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&protoPath, "proto", "p", "", "path to the proto file")
+	cmd.Flags().StringVarP(&protoFile, "proto", "p", "", "path to the proto file")
 	cmd.MarkFlagRequired("proto")
 	cmd.Flags().StringVarP(&excelPath, "excel", "e", "", "output excel file path")
 	cmd.MarkFlagRequired("excel")
