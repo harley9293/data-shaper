@@ -9,33 +9,37 @@ import (
 	"unicode"
 )
 
-type FieldUtil struct {
-	index    int
-	values   []string
-	codeName string
+type fieldStruct struct {
+	messageName string
+	index       int
+
+	values []string
 }
 
-type sheetUtil struct {
-	fieldMap  map[string]*FieldUtil
+type sheetStruct struct {
+	sheetName   string
+	messageName string
+	fieldMap    map[string]*fieldStruct
+
 	valueSize int
-	codeName  string
 }
 
-type protoUtil struct {
-	excelFileName string
-	codeName      string
-	sheetMap      map[string]*sheetUtil
+type excelStruct struct {
+	fileName    string
+	messageName string
+	sheetMap    map[string]*sheetStruct
 }
 
-func (util *protoUtil) Parse(protoFilePath string) error {
-	util.sheetMap = make(map[string]*sheetUtil)
+func parseProto(protoFilePath string) (*excelStruct, error) {
+	util := &excelStruct{}
+	util.sheetMap = make(map[string]*sheetStruct)
 
 	parse := protoparse.Parser{
 		IncludeSourceCodeInfo: true,
 	}
 	files, err := parse.ParseFiles(protoFilePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fd := files[0]
@@ -50,50 +54,54 @@ func (util *protoUtil) Parse(protoFilePath string) error {
 
 		if strings.Contains(comment, "@wrapper") {
 			if comment == "@wrapper" {
-				util.excelFileName = md.GetName() + ".xlsx"
+				util.fileName = md.GetName() + ".xlsx"
 			} else {
-				util.excelFileName = comment[strings.Index(comment, "@wrapper")+9:] + ".xlsx"
+				util.fileName = comment[strings.Index(comment, "@wrapper")+9:] + ".xlsx"
 			}
-			util.codeName = md.GetName()
+			util.messageName = md.GetName()
 
 			for _, sheet := range md.GetFields() {
-				sheetComment := strings.TrimSpace(*sheet.GetSourceInfo().LeadingComments)
-				if !strings.Contains(sheetComment, "@name") {
-					return errors.New("no sheet name found in proto file")
+				sheetName := sheet.GetName()
+				if sheet.GetSourceInfo().LeadingComments != nil {
+					tmp := *sheet.GetSourceInfo().LeadingComments
+					if strings.Contains(tmp, "@name") {
+						sheetName = strings.TrimSpace(strings.Split(tmp, "@name")[1])
+					}
 				}
 
-				sheetName := "#" + sheetComment[strings.Index(sheetComment, "@name")+6:]
-				util.sheetMap[sheetName] = &sheetUtil{fieldMap: make(map[string]*FieldUtil), codeName: strings.Split(sheet.GetName(), "_")[1]}
+				util.sheetMap[sheetName] = &sheetStruct{sheetName: "#" + sheetName, fieldMap: make(map[string]*fieldStruct), messageName: sheet.GetName()}
 
 				msgName := sheet.GetMessageType().GetFullyQualifiedName()
 				mmd := fd.FindMessage(msgName)
 				if mmd == nil {
-					return errors.New(fmt.Sprintf("%s message not found in proto file", msgName))
+					return nil, errors.New(fmt.Sprintf("%s message not found in proto file", msgName))
 				}
 
 				for index, field := range mmd.GetFields() {
-					fieldComment := strings.TrimSpace(*field.GetSourceInfo().LeadingComments)
-					if !strings.Contains(fieldComment, "@name") {
-						return errors.New("no field name found in proto file")
+					fieldName := field.GetName()
+					if field.GetSourceInfo().LeadingComments != nil {
+						tmp := *field.GetSourceInfo().LeadingComments
+						if strings.Contains(tmp, "@name") {
+							fieldName = strings.TrimSpace(strings.Split(tmp, "@name")[1])
+						}
 					}
 
-					fieldName := fieldComment[strings.Index(fieldComment, "@name")+6:]
 					firstSpaceIndex := strings.IndexFunc(fieldName, unicode.IsSpace)
 					if firstSpaceIndex != -1 {
 						fieldName = fieldName[:firstSpaceIndex]
 					}
-					util.sheetMap[sheetName].fieldMap[fieldName] = &FieldUtil{index: index, codeName: field.GetName()}
+					util.sheetMap[sheetName].fieldMap[fieldName] = &fieldStruct{index: index, messageName: field.GetName()}
 				}
 			}
 
-			return nil
+			return util, nil
 		}
 	}
 
-	return errors.New("no wrapper found in proto file")
+	return nil, errors.New("no wrapper found in proto file")
 }
 
-func (util *protoUtil) LoadData(excelFilePath string) error {
+func (util *excelStruct) LoadData(excelFilePath string) error {
 	f, err := excelize.OpenFile(excelFilePath)
 	if err != nil {
 		return err

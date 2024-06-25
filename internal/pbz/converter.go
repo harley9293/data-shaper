@@ -3,12 +3,10 @@ package pbz
 import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
-	"os"
 )
 
-func ProtoToExcel(protoFilePath string, excelFilePath string) error {
-	util := protoUtil{}
-	err := util.Parse(protoFilePath)
+func protoToExcel(protoFilePath string, excelFilePath string) error {
+	util, err := parseProto(protoFilePath)
 	if err != nil {
 		return err
 	}
@@ -28,44 +26,7 @@ func ProtoToExcel(protoFilePath string, excelFilePath string) error {
 
 	_ = f.DeleteSheet("Sheet1")
 
-	if err = f.SaveAs(excelFilePath + util.excelFileName); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func ExcelToCfg(protoFilePath string, excelFilePath string, cfgOutputPath string) error {
-	util := protoUtil{}
-	err := util.Parse(protoFilePath)
-	if err != nil {
-		return err
-	}
-
-	err = util.LoadData(excelFilePath)
-	if err != nil {
-		return err
-	}
-
-	fileContents := ""
-	for _, sheet := range util.sheetMap {
-		fileContents += fmt.Sprintf("[%s]\n", sheet.codeName)
-		fileContents += fmt.Sprintf("Size = %d\n\n", sheet.valueSize)
-
-		fieldOrder := make([]string, len(sheet.fieldMap))
-		for fieldName, field := range sheet.fieldMap {
-			fieldOrder[field.index] = fieldName
-		}
-		for i := 0; i < sheet.valueSize; i++ {
-			for _, fieldName := range fieldOrder {
-				fileContents += fmt.Sprintf("%s_%d = %s\n", sheet.fieldMap[fieldName].codeName, i, sheet.fieldMap[fieldName].values[i])
-			}
-			fileContents += "\n"
-		}
-	}
-
-	err = os.WriteFile(cfgOutputPath+".cfg", []byte(fileContents), 0644)
-	if err != nil {
+	if err = f.SaveAs(excelFilePath + util.fileName); err != nil {
 		return err
 	}
 

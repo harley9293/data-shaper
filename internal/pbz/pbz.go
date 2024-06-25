@@ -15,7 +15,7 @@ func Cmd() *cobra.Command {
 		},
 	}
 	cmd.DisableFlagsInUseLine = true
-	cmd.AddCommand(excel(), Export())
+	cmd.AddCommand(excel(), export())
 	return cmd
 }
 
@@ -26,7 +26,7 @@ func excel() *cobra.Command {
 		Use:   "excel",
 		Short: "create excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := ProtoToExcel(protoPath, outputPath)
+			err := protoToExcel(protoPath, outputPath)
 			if err != nil {
 				return err
 			}
@@ -43,7 +43,7 @@ func excel() *cobra.Command {
 	return cmd
 }
 
-func Export() *cobra.Command {
+func export() *cobra.Command {
 	var protoPath string
 	var outputPath string
 	var excelPath string
@@ -56,10 +56,6 @@ func Export() *cobra.Command {
 				return errors.New("unsupported export type, only 'cfg' is supported")
 			}
 
-			err := ExcelToCfg(protoPath, excelPath, outputPath)
-			if err != nil {
-				return err
-			}
 			fmt.Println("excel file convert to cfg successfully at", outputPath)
 			return nil
 		},
