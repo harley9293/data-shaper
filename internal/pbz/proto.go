@@ -25,14 +25,16 @@ type sheetStruct struct {
 }
 
 type excelStruct struct {
+	dirPath     string
 	fileName    string
 	messageName string
 	sheetMap    map[string]*sheetStruct
 }
 
-func parseProto(protoFilePath string) (*excelStruct, error) {
+func parseProto(protoFilePath, excelDirPath string) (*excelStruct, error) {
 	util := &excelStruct{}
 	util.sheetMap = make(map[string]*sheetStruct)
+	util.dirPath = excelDirPath
 
 	parse := protoparse.Parser{
 		IncludeSourceCodeInfo: true,
@@ -101,7 +103,30 @@ func parseProto(protoFilePath string) (*excelStruct, error) {
 	return nil, errors.New("no wrapper found in proto file")
 }
 
-func (util *excelStruct) LoadData(excelFilePath string) error {
+func (util *excelStruct) saveData() error {
+	f := excelize.NewFile()
+	for sheetName, sheet := range util.sheetMap {
+		if _, err := f.NewSheet(sheetName); err != nil {
+			return err
+		}
+
+		for fieldName, field := range sheet.fieldMap {
+			if err := f.SetCellValue(sheetName, fmt.Sprintf("%s%d", string(rune('A'+field.index)), 1), fieldName); err != nil {
+				return err
+			}
+		}
+	}
+
+	_ = f.DeleteSheet("Sheet1")
+
+	if err := f.SaveAs(util.dirPath + util.fileName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (util *excelStruct) loadData(excelFilePath string) error {
 	f, err := excelize.OpenFile(excelFilePath)
 	if err != nil {
 		return err

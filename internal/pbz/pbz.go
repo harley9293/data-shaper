@@ -21,24 +21,28 @@ func Cmd() *cobra.Command {
 
 func excel() *cobra.Command {
 	var protoPath string
-	var outputPath string
+	var excelPath string
 	cmd := &cobra.Command{
 		Use:   "excel",
 		Short: "create excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := protoToExcel(protoPath, outputPath)
+			util, err := parseProto(protoPath, excelPath)
 			if err != nil {
 				return err
 			}
-			fmt.Println("excel file created successfully at", outputPath)
+			err = util.saveData()
+			if err != nil {
+				return err
+			}
+			fmt.Println("excel file created successfully at", excelPath)
 			return nil
 		},
 	}
 
 	cmd.Flags().StringVarP(&protoPath, "proto", "p", "", "path to the proto file")
 	cmd.MarkFlagRequired("proto")
-	cmd.Flags().StringVarP(&outputPath, "output", "o", "", "output file path")
-	cmd.MarkFlagRequired("output")
+	cmd.Flags().StringVarP(&excelPath, "excel", "e", "", "output excel file path")
+	cmd.MarkFlagRequired("excel")
 
 	return cmd
 }

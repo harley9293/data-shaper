@@ -1,9 +1,12 @@
 package pbz
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func Test_parseProto_all(t *testing.T) {
-	file, err := parseProto("./test/test_all.proto")
+	file, err := parseProto("./test/test_all.proto", "./test/")
 	if err != nil {
 		t.Errorf("parseProto() error = %v", err)
 		return
@@ -91,7 +94,7 @@ func Test_parseProto_all(t *testing.T) {
 }
 
 func Test_parseProto_defaultWrapper(t *testing.T) {
-	file, err := parseProto("./test/test_wrapper_default.proto")
+	file, err := parseProto("./test/test_wrapper_default.proto", "./test/")
 	if err != nil {
 		t.Errorf("parseProto() error = %v", err)
 		return
@@ -104,9 +107,24 @@ func Test_parseProto_defaultWrapper(t *testing.T) {
 }
 
 func Test_parseProto_noWrapper(t *testing.T) {
-	_, err := parseProto("./test/test_wrapper_no.proto")
+	_, err := parseProto("./test/test_wrapper_no.proto", "./test/")
 	if err == nil {
 		t.Errorf("parseProto() error = nil, want no wrapper found in proto file")
 		return
 	}
+}
+
+func Test_saveData(t *testing.T) {
+	file, err := parseProto("./test/test_all.proto", "./test/")
+	if err != nil {
+		t.Errorf("saveData() parseProto error = %v", err)
+		return
+	}
+
+	err = file.saveData()
+	if err != nil {
+		t.Errorf("saveData() err = %v", err)
+		return
+	}
+	_ = os.Remove("./test/测试配置.xlsx")
 }
