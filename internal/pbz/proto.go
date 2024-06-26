@@ -31,7 +31,7 @@ type excelStruct struct {
 	sheetMap    map[string]*sheetStruct
 }
 
-func parseProto(protoFilePath, excelDirPath string) (*excelStruct, error) {
+func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct, error) {
 	util := &excelStruct{}
 	util.sheetMap = make(map[string]*sheetStruct)
 	util.dirPath = excelDirPath
@@ -100,6 +100,10 @@ func parseProto(protoFilePath, excelDirPath string) (*excelStruct, error) {
 		}
 	}
 
+	if loadData {
+		util.loadData()
+	}
+
 	return nil, errors.New("no wrapper found in proto file")
 }
 
@@ -126,28 +130,23 @@ func (util *excelStruct) saveData() error {
 	return nil
 }
 
-func (util *excelStruct) loadData(excelFilePath string) error {
-	f, err := excelize.OpenFile(excelFilePath)
+func (util *excelStruct) loadData() {
+	f, err := excelize.OpenFile(util.dirPath + util.fileName)
 	if err != nil {
-		return err
+		return
 	}
 	defer func(f *excelize.File) {
 		_ = f.Close()
 	}(f)
 
-	// for util.sheetMap
 	for sheetName, _ := range util.sheetMap {
-		if _, ok := util.sheetMap[sheetName]; !ok {
+		rows, err := f.GetRows(sheetName)
+		if err != nil {
 			continue
 		}
 
-		rows, err := f.GetRows(sheetName)
-		if err != nil {
-			return err
-		}
-
 		if len(rows) < 1 {
-			return errors.New("no data found in excel file")
+			continue
 		}
 
 		fieldIndexToName := make(map[int]string)
@@ -172,5 +171,4 @@ func (util *excelStruct) loadData(excelFilePath string) error {
 			util.sheetMap[sheetName].valueSize++
 		}
 	}
-	return nil
 }

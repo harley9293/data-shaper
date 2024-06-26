@@ -26,7 +26,7 @@ func excel() *cobra.Command {
 		Use:   "excel",
 		Short: "create excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			util, err := parseProto(protoFile, excelPath)
+			util, err := parseProto(protoFile, excelPath, false)
 			if err != nil {
 				return err
 			}
@@ -48,30 +48,30 @@ func excel() *cobra.Command {
 }
 
 func export() *cobra.Command {
-	var protoPath string
-	var outputPath string
+	var protoFile string
 	var excelPath string
+	var outputPath string
 	var exportType string
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "export excel content to support config file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if exportType != "cfg" {
-				return errors.New("unsupported export type, only 'cfg' is supported")
+			if exportType != "json" {
+				return errors.New("unsupported export type, only 'json' is supported")
 			}
 
-			fmt.Println("excel file convert to cfg successfully at", outputPath)
+			fmt.Println("excel file convert to json successfully at", outputPath)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&protoPath, "proto", "p", "", "path to the proto file")
+	cmd.Flags().StringVarP(&protoFile, "proto", "p", "", "path to the proto file")
 	cmd.MarkFlagRequired("proto")
+	cmd.Flags().StringVarP(&excelPath, "excel", "e", "", "excel file path")
+	cmd.MarkFlagRequired("excel")
 	cmd.Flags().StringVarP(&outputPath, "output", "o", "", "output file path")
 	cmd.MarkFlagRequired("output")
-	cmd.Flags().StringVarP(&excelPath, "excel", "e", "", "Path to the Excel file")
-	cmd.MarkFlagRequired("excel")
-	cmd.Flags().StringVarP(&exportType, "type", "t", "", "type of the config file to export to")
+	cmd.Flags().StringVarP(&exportType, "type", "t", "", "support export type, only 'json' is supported")
 	cmd.MarkFlagRequired("type")
 
 	return cmd
