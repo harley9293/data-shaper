@@ -139,7 +139,7 @@ func (util *excelStruct) loadData() {
 		_ = f.Close()
 	}(f)
 
-	for sheetName, _ := range util.sheetMap {
+	for sheetName, sheet := range util.sheetMap {
 		rows, err := f.GetRows(sheetName)
 		if err != nil {
 			continue
@@ -151,7 +151,7 @@ func (util *excelStruct) loadData() {
 
 		fieldIndexToName := make(map[int]string)
 		for index, cell := range rows[0] {
-			if _, ok := util.sheetMap[sheetName].fieldMap[cell]; !ok {
+			if _, ok := sheet.fieldMap[cell]; !ok {
 				continue
 			}
 
@@ -165,10 +165,10 @@ func (util *excelStruct) loadData() {
 
 			for index, cell := range row {
 				if fieldName, ok := fieldIndexToName[index]; ok {
-					util.sheetMap[sheetName].fieldMap[fieldName].values = append(util.sheetMap[sheetName].fieldMap[fieldName].values, cell)
+					sheet.fieldMap[fieldName].values = append(sheet.fieldMap[fieldName].values, cell)
 				}
 			}
-			util.sheetMap[sheetName].valueSize++
+			sheet.valueSize++
 		}
 	}
 }
