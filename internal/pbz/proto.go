@@ -87,20 +87,43 @@ func (util *excelStruct) saveData() error {
 	}
 
 	for _, sheet := range util.sheetList {
-		if _, err := f.NewSheet(sheet.sheetName); err != nil {
-			return err
+		exist := false
+		for _, s := range f.GetSheetList() {
+			if s == sheet.sheetName {
+				exist = true
+				break
+			}
 		}
 
-		for index, field := range sheet.fieldList {
-			if err := f.SetCellValue(sheet.sheetName, fmt.Sprintf("%s%d", string(rune('A'+index)), 1), field.fieldName); err != nil {
+		if !exist {
+			_, err = f.NewSheet(sheet.sheetName)
+			if err != nil {
 				return err
+			}
+		}
+
+		rows, _ := f.GetRows(sheet.sheetName)
+		nameToCell := make(map[string]int)
+		avilableIndex := 0
+		if len(rows) > 0 {
+			for index, field := range rows[0] {
+				nameToCell[field] = index
+				avilableIndex = index + 1
+			}
+		}
+
+		for _, field := range sheet.fieldList {
+			if _, ok := nameToCell[field.fieldName]; !ok {
+				if err = f.SetCellValue(sheet.sheetName, fmt.Sprintf("%s%d", string(rune('A'+avilableIndex)), 1), field.fieldName); err != nil {
+					return err
+				}
+				avilableIndex++
 			}
 		}
 	}
 
 	_ = f.DeleteSheet("Sheet1")
-
-	if err := f.SaveAs(util.dirPath + util.fileName); err != nil {
+	if err = f.SaveAs(util.dirPath + util.fileName); err != nil {
 		return err
 	}
 
