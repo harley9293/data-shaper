@@ -6,7 +6,7 @@ import (
 )
 
 func Test_parseProto_all(t *testing.T) {
-	file, err := parseProto("./test/test_all.proto", "./test/")
+	file, err := parseProto("./test/test_all.proto", "./test/", false)
 	if err != nil {
 		t.Errorf("parseProto() error = %v", err)
 		return
@@ -94,7 +94,7 @@ func Test_parseProto_all(t *testing.T) {
 }
 
 func Test_parseProto_defaultWrapper(t *testing.T) {
-	file, err := parseProto("./test/test_wrapper_default.proto", "./test/")
+	file, err := parseProto("./test/test_wrapper_default.proto", "./test/", false)
 	if err != nil {
 		t.Errorf("parseProto() error = %v", err)
 		return
@@ -107,7 +107,7 @@ func Test_parseProto_defaultWrapper(t *testing.T) {
 }
 
 func Test_parseProto_noWrapper(t *testing.T) {
-	_, err := parseProto("./test/test_wrapper_no.proto", "./test/")
+	_, err := parseProto("./test/test_wrapper_no.proto", "./test/", false)
 	if err == nil {
 		t.Errorf("parseProto() error = nil, want no wrapper found in proto file")
 		return
@@ -115,7 +115,7 @@ func Test_parseProto_noWrapper(t *testing.T) {
 }
 
 func Test_saveData(t *testing.T) {
-	file, err := parseProto("./test/test_all.proto", "./test/")
+	file, err := parseProto("./test/test_all.proto", "./test/", false)
 	if err != nil {
 		t.Errorf("saveData() parseProto error = %v", err)
 		return
