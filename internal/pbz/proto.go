@@ -52,25 +52,11 @@ func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct
 			continue
 		}
 
-		comment := strings.TrimSpace(*md.GetSourceInfo().LeadingComments)
-
-		if strings.Contains(comment, "@wrapper") {
-			if comment == "@wrapper" {
-				util.fileName = md.GetName() + ".xlsx"
-			} else {
-				util.fileName = comment[strings.Index(comment, "@wrapper")+9:] + ".xlsx"
-			}
+		if hasKeyFromComments(md.GetSourceInfo().LeadingComments, "wrapper") {
+			util.fileName = getValueFromComments(md.GetSourceInfo().LeadingComments, "wrapper", md.GetName()) + ".xlsx"
 			util.messageName = md.GetName()
-
 			for _, sheet := range md.GetFields() {
-				sheetName := sheet.GetName()
-				if sheet.GetSourceInfo().LeadingComments != nil {
-					tmp := *sheet.GetSourceInfo().LeadingComments
-					if strings.Contains(tmp, "@name") {
-						sheetName = strings.TrimSpace(strings.Split(tmp, "@name")[1])
-					}
-				}
-
+				sheetName := getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName())
 				util.sheetMap[sheetName] = &sheetStruct{sheetName: "#" + sheetName, fieldMap: make(map[string]*fieldStruct), messageName: sheet.GetName()}
 
 				msgName := sheet.GetMessageType().GetFullyQualifiedName()
@@ -80,14 +66,7 @@ func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct
 				}
 
 				for index, field := range mmd.GetFields() {
-					fieldName := field.GetName()
-					if field.GetSourceInfo().LeadingComments != nil {
-						tmp := *field.GetSourceInfo().LeadingComments
-						if strings.Contains(tmp, "@name") {
-							fieldName = strings.TrimSpace(strings.Split(tmp, "@name")[1])
-						}
-					}
-
+					fieldName := getValueFromComments(field.GetSourceInfo().LeadingComments, "name", field.GetName())
 					firstSpaceIndex := strings.IndexFunc(fieldName, unicode.IsSpace)
 					if firstSpaceIndex != -1 {
 						fieldName = fieldName[:firstSpaceIndex]
@@ -171,4 +150,29 @@ func (util *excelStruct) loadData() {
 			sheet.valueSize++
 		}
 	}
+}
+
+func getValueFromComments(comments *string, key string, defaultValue string) (value string) {
+	value = defaultValue
+	if comments == nil {
+		return
+	}
+
+	if strings.Contains(*comments, "@"+key) {
+		value = strings.TrimSpace(strings.Split(*comments, "@"+key)[1])
+	}
+
+	if value == "" {
+		value = defaultValue
+	}
+
+	return
+}
+
+func hasKeyFromComments(comments *string, key string) bool {
+	if comments == nil {
+		return false
+	}
+
+	return strings.Contains(*comments, "@"+key)
 }

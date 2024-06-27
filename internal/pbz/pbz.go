@@ -24,7 +24,7 @@ func excel() *cobra.Command {
 	var excelPath string
 	cmd := &cobra.Command{
 		Use:   "excel",
-		Short: "create excel file from proto file",
+		Short: "create or update excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			util, err := parseProto(protoFile, excelPath, false)
 			if err != nil {
@@ -34,7 +34,7 @@ func excel() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println("excel file created successfully at", excelPath)
+			fmt.Println("excel file update successfully at", excelPath)
 			return nil
 		},
 	}
