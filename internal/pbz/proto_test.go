@@ -22,20 +22,19 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
-	sheet1, ok := file.sheetMap["测试页签1"]
-	if !ok {
-		t.Errorf("parseProto() file.sheetMap[\"#测试页签1\"] = %v, want %v", ok, true)
+	if len(file.sheetList) != 2 {
+		t.Errorf("parseProto() len(file.sheetList) = %v, want %v", len(file.sheetList), 2)
 		return
 	}
 
-	_, ok = file.sheetMap["test_sheet_2"]
-	if !ok {
-		t.Errorf("parseProto() file.sheetMap[\"test_sheet_2\"] = %v, want %v", ok, true)
+	sheet1 := file.sheetList[0]
+	if sheet1.sheetName != "测试页签1" {
+		t.Errorf("parseProto() file.sheetList[0].sheetName = %v, want %v", file.sheetList[0].sheetName, "测试页签1")
 		return
 	}
 
-	if sheet1.sheetName != "#测试页签1" {
-		t.Errorf("parseProto() sheet1.sheetName = %v, want %v", sheet1.sheetName, "#测试页签1")
+	if file.sheetList[1].sheetName != "test_sheet_2" {
+		t.Errorf("parseProto() file.sheetList[1].sheetName = %v, want %v", file.sheetList[1].sheetName, "test_sheet_2")
 		return
 	}
 
@@ -44,9 +43,14 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
-	field1, ok := sheet1.fieldMap["测试字段1"]
-	if !ok {
-		t.Errorf("parseProto() sheet1.fieldMap[\"测试字段1\"] = %v, want %v", ok, true)
+	if len(sheet1.fieldList) != 3 {
+		t.Errorf("parseProto() len(sheet1.fieldList) = %v, want %v", len(sheet1.fieldList), 3)
+		return
+	}
+
+	field1 := sheet1.fieldList[0]
+	if field1.fieldName != "测试字段1" {
+		t.Errorf("parseProto() sheet1.fieldList[0].fieldName = %v, want %v", field1.fieldName, "测试字段1")
 		return
 	}
 
@@ -55,14 +59,9 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
-	if field1.index != 0 {
-		t.Errorf("parseProto() field1.index = %v, want %v", field1.index, 0)
-		return
-	}
-
-	field2, ok := sheet1.fieldMap["测试字段2"]
-	if !ok {
-		t.Errorf("parseProto() sheet1.fieldMap[\"测试字段2\"] = %v, want %v", ok, true)
+	field2 := sheet1.fieldList[1]
+	if field2.fieldName != "测试字段2" {
+		t.Errorf("parseProto() sheet1.fieldList[1].fieldName = %v, want %v", field2.fieldName, "测试字段2")
 		return
 	}
 
@@ -71,24 +70,14 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
-	if field2.index != 1 {
-		t.Errorf("parseProto() field2.index = %v, want %v", field2.index, 1)
-		return
-	}
-
-	field3, ok := sheet1.fieldMap["test_field_3"]
-	if !ok {
-		t.Errorf("parseProto() sheet1.fieldMap[\"test_field_3\"] = %v, want %v", ok, true)
+	field3 := sheet1.fieldList[2]
+	if field3.fieldName != "test_field_3" {
+		t.Errorf("parseProto() sheet1.fieldList[2].fieldName = %v, want %v", field3.fieldName, "test_field_3")
 		return
 	}
 
 	if field3.messageName != "test_field_3" {
 		t.Errorf("parseProto() field3.messageName = %v, want %v", field3.messageName, "test_field_3")
-		return
-	}
-
-	if field3.index != 2 {
-		t.Errorf("parseProto() field3.index = %v, want %v", field3.index, 2)
 		return
 	}
 }
