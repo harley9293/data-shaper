@@ -12,8 +12,8 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
-	if file.fileName != "测试配置.xlsx" {
-		t.Errorf("parseProto() file.excelFileName = %v, want %v", file.fileName, "测试配置.xlsx")
+	if file.filePath != "./test/测试配置.xlsx" {
+		t.Errorf("parseProto() file.excelFileName = %v, want %v", file.filePath, "./test/测试配置.xlsx")
 		return
 	}
 
@@ -28,13 +28,13 @@ func Test_parseProto_all(t *testing.T) {
 	}
 
 	sheet1 := file.sheetList[0]
-	if sheet1.sheetName != "测试页签1" {
-		t.Errorf("parseProto() file.sheetList[0].sheetName = %v, want %v", file.sheetList[0].sheetName, "测试页签1")
+	if sheet1.name != "测试页签1" {
+		t.Errorf("parseProto() file.sheetList[0].sheetName = %v, want %v", file.sheetList[0].name, "测试页签1")
 		return
 	}
 
-	if file.sheetList[1].sheetName != "test_sheet_2" {
-		t.Errorf("parseProto() file.sheetList[1].sheetName = %v, want %v", file.sheetList[1].sheetName, "test_sheet_2")
+	if file.sheetList[1].name != "test_sheet_2" {
+		t.Errorf("parseProto() file.sheetList[1].sheetName = %v, want %v", file.sheetList[1].name, "test_sheet_2")
 		return
 	}
 
@@ -49,8 +49,8 @@ func Test_parseProto_all(t *testing.T) {
 	}
 
 	field1 := sheet1.fieldList[0]
-	if field1.fieldName != "测试字段1" {
-		t.Errorf("parseProto() sheet1.fieldList[0].fieldName = %v, want %v", field1.fieldName, "测试字段1")
+	if field1.name != "测试字段1" {
+		t.Errorf("parseProto() sheet1.fieldList[0].fieldName = %v, want %v", field1.name, "测试字段1")
 		return
 	}
 
@@ -60,8 +60,8 @@ func Test_parseProto_all(t *testing.T) {
 	}
 
 	field2 := sheet1.fieldList[1]
-	if field2.fieldName != "测试字段2" {
-		t.Errorf("parseProto() sheet1.fieldList[1].fieldName = %v, want %v", field2.fieldName, "测试字段2")
+	if field2.name != "测试字段2" {
+		t.Errorf("parseProto() sheet1.fieldList[1].fieldName = %v, want %v", field2.name, "测试字段2")
 		return
 	}
 
@@ -71,8 +71,8 @@ func Test_parseProto_all(t *testing.T) {
 	}
 
 	field3 := sheet1.fieldList[2]
-	if field3.fieldName != "test_field_3" {
-		t.Errorf("parseProto() sheet1.fieldList[2].fieldName = %v, want %v", field3.fieldName, "test_field_3")
+	if field3.name != "test_field_3" {
+		t.Errorf("parseProto() sheet1.fieldList[2].fieldName = %v, want %v", field3.name, "test_field_3")
 		return
 	}
 
@@ -89,8 +89,8 @@ func Test_parseProto_defaultWrapper(t *testing.T) {
 		return
 	}
 
-	if file.fileName != "TestConfig.xlsx" {
-		t.Errorf("parseProto() file.excelFileName = %v, want %v", file.fileName, "TestConfig.xlsx")
+	if file.filePath != "./test/TestConfig.xlsx" {
+		t.Errorf("parseProto() file.excelFileName = %v, want %v", file.filePath, "./test/TestConfig.xlsx")
 		return
 	}
 }

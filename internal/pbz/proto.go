@@ -9,31 +9,30 @@ import (
 	"strings"
 )
 
-type fieldStruct struct {
-	fieldName   string
+type Field struct {
+	name        string
 	messageName string
 
 	values []string
 }
 
-type sheetStruct struct {
-	sheetName   string
+type Sheet struct {
+	name        string
 	messageName string
-	fieldList   []*fieldStruct
+	fieldList   []Field
 
 	valueSize int
 }
 
-type excelStruct struct {
-	dirPath     string
-	fileName    string
+type ProtoExcelSchema struct {
+	filePath    string
 	messageName string
-	sheetList   []*sheetStruct
+	sheetList   []Sheet
 }
 
-func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct, error) {
-	util := &excelStruct{}
-	util.dirPath = excelDirPath
+func parseProto(protoFilePath, excelDirPath string, loadData bool) (*ProtoExcelSchema, error) {
+	util := &ProtoExcelSchema{}
+	util.filePath = excelDirPath
 
 	parse := protoparse.Parser{
 		IncludeSourceCodeInfo: true,
@@ -52,11 +51,10 @@ func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct
 		}
 
 		if hasKeyFromComments(md.GetSourceInfo().LeadingComments, "wrapper") {
-			util.fileName = getValueFromComments(md.GetSourceInfo().LeadingComments, "wrapper", md.GetName()) + ".xlsx"
+			util.filePath += getValueFromComments(md.GetSourceInfo().LeadingComments, "wrapper", md.GetName()) + ".xlsx"
 			util.messageName = md.GetName()
 			for _, sheet := range md.GetFields() {
-				sheetName := getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName())
-				newSheet := &sheetStruct{sheetName: sheetName, messageName: sheet.GetName()}
+				newSheet := Sheet{name: getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName()), messageName: sheet.GetName()}
 				mmd := fd.FindMessage(sheet.GetMessageType().GetFullyQualifiedName())
 				if mmd == nil {
 					return nil, errors.New(fmt.Sprintf("%s message not found in proto file", sheet.GetMessageType().GetFullyQualifiedName()))
@@ -64,7 +62,7 @@ func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct
 
 				for _, field := range mmd.GetFields() {
 					fieldName := getValueFromComments(field.GetSourceInfo().LeadingComments, "name", field.GetName())
-					newSheet.fieldList = append(newSheet.fieldList, &fieldStruct{fieldName: fieldName, messageName: field.GetName()})
+					newSheet.fieldList = append(newSheet.fieldList, Field{name: fieldName, messageName: field.GetName()})
 				}
 				util.sheetList = append(util.sheetList, newSheet)
 			}
@@ -80,25 +78,25 @@ func parseProto(protoFilePath, excelDirPath string, loadData bool) (*excelStruct
 	return nil, errors.New("no wrapper found in proto file")
 }
 
-func (util *excelStruct) saveData() error {
-	f, err := excelize.OpenFile(util.dirPath + util.fileName)
+func (util *ProtoExcelSchema) saveData() error {
+	f, err := excelize.OpenFile(util.filePath)
 	if errors.Is(err, fs.ErrNotExist) {
 		f = excelize.NewFile()
 	}
 
 	for _, sheet := range util.sheetList {
-		if !hasSheet(f, sheet.sheetName) {
-			_, err = f.NewSheet(sheet.sheetName)
+		if !hasSheet(f, sheet.name) {
+			_, err = f.NewSheet(sheet.name)
 			if err != nil {
 				return err
 			}
 		}
 
-		nameToCell := getExistFieldMap(f, sheet.sheetName)
-		availableIndex := getAvailableIndex(f, sheet.sheetName)
+		nameToCell := getExistFieldMap(f, sheet.name)
+		availableIndex := getAvailableIndex(f, sheet.name)
 		for _, field := range sheet.fieldList {
-			if _, ok := nameToCell[field.fieldName]; !ok {
-				if err = f.SetCellValue(sheet.sheetName, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1), field.fieldName); err != nil {
+			if _, ok := nameToCell[field.name]; !ok {
+				if err = f.SetCellValue(sheet.name, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1), field.name); err != nil {
 					return err
 				}
 				availableIndex++
@@ -107,14 +105,14 @@ func (util *excelStruct) saveData() error {
 	}
 
 	_ = f.DeleteSheet("Sheet1")
-	if err = f.SaveAs(util.dirPath + util.fileName); err != nil {
+	if err = f.SaveAs(util.filePath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (util *excelStruct) loadData() {
+func (util *ProtoExcelSchema) loadData() {
 
 }
 
