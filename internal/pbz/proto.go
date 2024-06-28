@@ -87,31 +87,15 @@ func (util *excelStruct) saveData() error {
 	}
 
 	for _, sheet := range util.sheetList {
-		exist := false
-		for _, s := range f.GetSheetList() {
-			if s == sheet.sheetName {
-				exist = true
-				break
-			}
-		}
-
-		if !exist {
+		if !hasSheet(f, sheet.sheetName) {
 			_, err = f.NewSheet(sheet.sheetName)
 			if err != nil {
 				return err
 			}
 		}
 
-		rows, _ := f.GetRows(sheet.sheetName)
-		nameToCell := make(map[string]int)
-		availableIndex := 0
-		if len(rows) > 0 {
-			for index, field := range rows[0] {
-				nameToCell[field] = index
-				availableIndex = index + 1
-			}
-		}
-
+		nameToCell := getExistFieldMap(f, sheet.sheetName)
+		availableIndex := getAvailableIndex(f, sheet.sheetName)
 		for _, field := range sheet.fieldList {
 			if _, ok := nameToCell[field.fieldName]; !ok {
 				if err = f.SetCellValue(sheet.sheetName, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1), field.fieldName); err != nil {
@@ -157,4 +141,38 @@ func hasKeyFromComments(comments *string, key string) bool {
 	}
 
 	return strings.Contains(*comments, "@"+key)
+}
+
+func hasSheet(f *excelize.File, sheetName string) bool {
+	for _, sheet := range f.GetSheetList() {
+		if sheet == sheetName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getExistFieldMap(f *excelize.File, sheetName string) map[string]int {
+	rows, _ := f.GetRows(sheetName)
+	nameToCell := make(map[string]int)
+	if len(rows) > 0 {
+		for index, field := range rows[0] {
+			nameToCell[field] = index
+		}
+	}
+	return nameToCell
+}
+
+func getAvailableIndex(f *excelize.File, sheetName string) int {
+	rows, _ := f.GetRows(sheetName)
+	nameToCell := make(map[string]int)
+	availableIndex := 0
+	if len(rows) > 0 {
+		for index, field := range rows[0] {
+			nameToCell[field] = index
+			availableIndex = index + 1
+		}
+	}
+	return availableIndex
 }
