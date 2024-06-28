@@ -104,20 +104,20 @@ func (util *excelStruct) saveData() error {
 
 		rows, _ := f.GetRows(sheet.sheetName)
 		nameToCell := make(map[string]int)
-		avilableIndex := 0
+		availableIndex := 0
 		if len(rows) > 0 {
 			for index, field := range rows[0] {
 				nameToCell[field] = index
-				avilableIndex = index + 1
+				availableIndex = index + 1
 			}
 		}
 
 		for _, field := range sheet.fieldList {
 			if _, ok := nameToCell[field.fieldName]; !ok {
-				if err = f.SetCellValue(sheet.sheetName, fmt.Sprintf("%s%d", string(rune('A'+avilableIndex)), 1), field.fieldName); err != nil {
+				if err = f.SetCellValue(sheet.sheetName, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1), field.fieldName); err != nil {
 					return err
 				}
-				avilableIndex++
+				availableIndex++
 			}
 		}
 	}
