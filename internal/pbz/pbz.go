@@ -3,6 +3,8 @@ package pbz
 import (
 	"errors"
 	"fmt"
+	"github.com/harley9293/data-shaper/internal/pbz/core"
+	"github.com/harley9293/data-shaper/internal/pbz/parser"
 	"github.com/spf13/cobra"
 )
 
@@ -26,14 +28,13 @@ func excel() *cobra.Command {
 		Use:   "excel",
 		Short: "create or update excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			util, err := parseProto(protoFile, excelPath, false)
+			schema := core.NewProtoExcelSchema(excelPath, &parser.ProtoParser{})
+			err := schema.ParseProto(protoFile)
 			if err != nil {
 				return err
 			}
-			err = util.saveData()
-			if err != nil {
-				return err
-			}
+
+			err = schema.SaveData()
 			fmt.Println("excel file update successfully at", excelPath)
 			return nil
 		},
