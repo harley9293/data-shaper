@@ -8,8 +8,11 @@ import (
 const TestExcelPath = "../test/"
 
 func Test_parseProto_all(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{}, nil)
-	err := schema.ParseProto(TestExcelPath + "test_all.proto")
+	schema := &core.ProtoExcelSchema{
+		FilePath: TestExcelPath,
+	}
+	protoParser := &ProtoParser{}
+	err := protoParser.Parse(TestExcelPath+"test_all.proto", schema)
 	if err != nil {
 		t.Errorf("ParseProto() error = %v", err)
 		return
@@ -86,8 +89,11 @@ func Test_parseProto_all(t *testing.T) {
 }
 
 func Test_parseProto_defaultWrapper(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{}, nil)
-	err := schema.ParseProto(TestExcelPath + "test_wrapper_default.proto")
+	schema := &core.ProtoExcelSchema{
+		FilePath: TestExcelPath,
+	}
+	protoParser := &ProtoParser{}
+	err := protoParser.Parse(TestExcelPath+"test_wrapper_default.proto", schema)
 	if err != nil {
 		t.Errorf("ParseProto() error = %v", err)
 		return
@@ -100,8 +106,11 @@ func Test_parseProto_defaultWrapper(t *testing.T) {
 }
 
 func Test_parseProto_noWrapper(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{}, nil)
-	err := schema.ParseProto(TestExcelPath + "test_wrapper_no.proto")
+	schema := &core.ProtoExcelSchema{
+		FilePath: TestExcelPath,
+	}
+	protoParser := &ProtoParser{}
+	err := protoParser.Parse(TestExcelPath+"test_wrapper_no.proto", schema)
 	if err == nil {
 		t.Errorf("ParseProto() error = %v, want %v", err, "no wrapper found in proto file")
 		return
