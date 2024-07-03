@@ -10,14 +10,19 @@ import (
 const TestExcelPath = "../test/"
 
 func Test_saveData(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &parser.ProtoParser{}, &ExcelWriter{})
-	err := schema.ParseProto(TestExcelPath + "test_all.proto")
+	schema := &core.ProtoExcelSchema{
+		FilePath: TestExcelPath,
+	}
+
+	protoParser := &parser.ProtoParser{}
+	err := protoParser.Parse(TestExcelPath+"test_all.proto", schema)
 	if err != nil {
 		t.Errorf("ParseProto() error = %v", err)
 		return
 	}
 
-	err = schema.SaveData()
+	excelWriter := &ExcelWriter{}
+	err = excelWriter.Write(TestExcelPath+"测试配置.xlsx", schema)
 	if err != nil {
 		t.Errorf("saveData() err = %v", err)
 		return
