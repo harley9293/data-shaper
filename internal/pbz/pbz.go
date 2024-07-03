@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/harley9293/data-shaper/internal/pbz/core"
 	"github.com/harley9293/data-shaper/internal/pbz/parser"
+	"github.com/harley9293/data-shaper/internal/pbz/writer"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func excel() *cobra.Command {
 		Use:   "excel",
 		Short: "create or update excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			schema := core.NewProtoExcelSchema(excelPath, &parser.ProtoParser{})
+			schema := core.NewProtoExcelSchema(excelPath, &parser.ProtoParser{}, &writer.ExcelWriter{})
 			err := schema.ParseProto(protoFile)
 			if err != nil {
 				return err

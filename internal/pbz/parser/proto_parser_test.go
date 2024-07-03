@@ -2,14 +2,13 @@ package parser
 
 import (
 	"github.com/harley9293/data-shaper/internal/pbz/core"
-	"os"
 	"testing"
 )
 
 const TestExcelPath = "../test/"
 
 func Test_parseProto_all(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{})
+	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{}, nil)
 	err := schema.ParseProto(TestExcelPath + "test_all.proto")
 	if err != nil {
 		t.Errorf("ParseProto() error = %v", err)
@@ -87,7 +86,7 @@ func Test_parseProto_all(t *testing.T) {
 }
 
 func Test_parseProto_defaultWrapper(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{})
+	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{}, nil)
 	err := schema.ParseProto(TestExcelPath + "test_wrapper_default.proto")
 	if err != nil {
 		t.Errorf("ParseProto() error = %v", err)
@@ -101,26 +100,10 @@ func Test_parseProto_defaultWrapper(t *testing.T) {
 }
 
 func Test_parseProto_noWrapper(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{})
+	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{}, nil)
 	err := schema.ParseProto(TestExcelPath + "test_wrapper_no.proto")
 	if err == nil {
 		t.Errorf("ParseProto() error = %v, want %v", err, "no wrapper found in proto file")
 		return
 	}
-}
-
-func Test_saveData(t *testing.T) {
-	schema := core.NewProtoExcelSchema(TestExcelPath, &ProtoParser{})
-	err := schema.ParseProto(TestExcelPath + "test_all.proto")
-	if err != nil {
-		t.Errorf("ParseProto() error = %v", err)
-		return
-	}
-
-	err = schema.SaveData()
-	if err != nil {
-		t.Errorf("saveData() err = %v", err)
-		return
-	}
-	_ = os.Remove(TestExcelPath + "测试配置.xlsx")
 }
