@@ -29,13 +29,16 @@ func excel() *cobra.Command {
 		Use:   "excel",
 		Short: "create or update excel file from proto file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			schema := core.NewProtoExcelSchema(excelPath, &parser.ProtoParser{}, &writer.ExcelWriter{})
+			schema := core.NewProtoExcelSchema(excelPath, &parser.ProtoParser{}, &writer.ExcelWriter{}, &parser.DataParser{})
 			err := schema.ParseProto(protoFile)
 			if err != nil {
 				return err
 			}
 
 			err = schema.SaveData()
+			if err != nil {
+				return err
+			}
 			fmt.Println("excel file update successfully at", excelPath)
 			return nil
 		},

@@ -21,11 +21,12 @@ type ProtoExcelSchema struct {
 	SheetList   []SheetSchema
 
 	protoParser Parser
+	dataParser  Parser
 	excelWriter Writer
 }
 
-func NewProtoExcelSchema(excelDirPath string, protoParser Parser, excelWriter Writer) *ProtoExcelSchema {
-	return &ProtoExcelSchema{FilePath: excelDirPath, protoParser: protoParser, excelWriter: excelWriter}
+func NewProtoExcelSchema(excelDirPath string, protoParser Parser, excelWriter Writer, dataParser Parser) *ProtoExcelSchema {
+	return &ProtoExcelSchema{FilePath: excelDirPath, protoParser: protoParser, excelWriter: excelWriter, dataParser: dataParser}
 }
 
 func (schema *ProtoExcelSchema) ParseProto(filePath string) error {
@@ -36,6 +37,6 @@ func (schema *ProtoExcelSchema) SaveData() error {
 	return schema.excelWriter.Write(schema.FilePath, schema)
 }
 
-func (schema *ProtoExcelSchema) loadData() {
-
+func (schema *ProtoExcelSchema) LoadData() {
+	_ = schema.dataParser.Parse(schema.FilePath, schema)
 }
