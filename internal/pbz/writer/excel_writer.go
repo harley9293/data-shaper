@@ -16,6 +16,16 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 		f = excelize.NewFile()
 	}
 
+	textFmt := "@"
+	style := &excelize.Style{
+		CustomNumFmt: &textFmt,
+	}
+
+	styleID, err := f.NewStyle(style)
+	if err != nil {
+		return err
+	}
+
 	for _, sheet := range protoSchema.SheetList {
 		if !hasSheet(f, sheet.Name) {
 			_, err = f.NewSheet(sheet.Name)
@@ -29,6 +39,9 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 		for _, field := range sheet.FieldList {
 			if _, ok := nameToCell[field.Name]; !ok {
 				if err = f.SetCellValue(sheet.Name, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1), field.Name); err != nil {
+					return err
+				}
+				if err = f.SetCellStyle(sheet.Name, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 2), fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 10), styleID); err != nil {
 					return err
 				}
 				availableIndex++
