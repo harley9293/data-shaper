@@ -7,8 +7,11 @@ message TestSheet
   // @name 测试字段1
   string test_field_1 = 1;
   // @name 测试字段2
+  // @note 测试注释第一行
+  // @note 测试注释第二行
   int32 test_field_2 = 2;
-  string test_field_3 = 3;
+  // @note 测试注释单行
+  double test_field_3 = 3;
 }
 
 message TestConstSheet

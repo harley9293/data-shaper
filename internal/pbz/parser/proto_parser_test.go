@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/harley9293/data-shaper/internal/pbz/core"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"testing"
 )
 
@@ -70,6 +71,11 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
+	if field1.MessageType != descriptorpb.FieldDescriptorProto_TYPE_STRING {
+		t.Errorf("parseProto() field1.MessageType = %v, want %v", field1.MessageType, int(descriptorpb.FieldDescriptorProto_TYPE_STRING))
+		return
+	}
+
 	field2 := sheet1.FieldList[1]
 	if field2.Name != "测试字段2" {
 		t.Errorf("parseProto() sheet1.FieldList[1].fieldName = %v, want %v", field2.Name, "测试字段2")
@@ -81,6 +87,16 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
+	if field2.MessageType != descriptorpb.FieldDescriptorProto_TYPE_INT32 {
+		t.Errorf("parseProto() field2.MessageType = %v, want %v", field2.MessageType, int(descriptorpb.FieldDescriptorProto_TYPE_INT32))
+		return
+	}
+
+	if field2.Note != "测试注释第一行\n测试注释第二行" {
+		t.Errorf("parseProto() field2.Note = %v, want %v", field2.Note, "测试注释第一行\n测试注释第二行")
+		return
+	}
+
 	field3 := sheet1.FieldList[2]
 	if field3.Name != "test_field_3" {
 		t.Errorf("parseProto() sheet1.FieldList[2].fieldName = %v, want %v", field3.Name, "test_field_3")
@@ -89,6 +105,16 @@ func Test_parseProto_all(t *testing.T) {
 
 	if field3.MessageName != "test_field_3" {
 		t.Errorf("parseProto() field3.MessageName = %v, want %v", field3.MessageName, "test_field_3")
+		return
+	}
+
+	if field3.MessageType != descriptorpb.FieldDescriptorProto_TYPE_DOUBLE {
+		t.Errorf("parseProto() field3.MessageType = %v, want %v", field3.MessageType, int(descriptorpb.FieldDescriptorProto_TYPE_DOUBLE))
+		return
+	}
+
+	if field3.Note != "测试注释单行" {
+		t.Errorf("parseProto() field3.Note = %v, want %v", field3.Note, "测试注释单行")
 		return
 	}
 

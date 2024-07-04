@@ -1,8 +1,12 @@
 package core
 
+import "google.golang.org/protobuf/types/descriptorpb"
+
 type FieldSchema struct {
 	Name        string
 	MessageName string
+	MessageType descriptorpb.FieldDescriptorProto_Type
+	Note        string
 
 	Values []string
 }

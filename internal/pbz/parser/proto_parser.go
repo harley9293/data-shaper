@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/harley9293/data-shaper/internal/pbz/core"
 	"github.com/jhump/protoreflect/desc/protoparse"
+	"regexp"
 	"strings"
 )
 
@@ -44,7 +45,8 @@ func (p *ProtoParser) Parse(filePath string, protoSchema *core.ProtoExcelSchema)
 
 				for _, field := range mmd.GetFields() {
 					fieldName := getValueFromComments(field.GetSourceInfo().LeadingComments, "name", field.GetName())
-					newSheet.FieldList = append(newSheet.FieldList, core.FieldSchema{Name: fieldName, MessageName: field.GetName()})
+					note := getValueFromComments(field.GetSourceInfo().LeadingComments, "note", "")
+					newSheet.FieldList = append(newSheet.FieldList, core.FieldSchema{Name: fieldName, MessageName: field.GetName(), MessageType: field.GetType(), Note: note})
 				}
 				protoSchema.SheetList = append(protoSchema.SheetList, newSheet)
 			}
@@ -70,8 +72,17 @@ func getValueFromComments(comments *string, key string, defaultValue string) (va
 		return
 	}
 
-	if strings.Contains(*comments, "@"+key) {
-		value = strings.TrimSpace(strings.Split(*comments, "@"+key)[1])
+	re := regexp.MustCompile(`@` + key + `\s+(.*)`)
+	matches := re.FindAllStringSubmatch(*comments, -1)
+
+	if matches != nil {
+		var values []string
+		for _, match := range matches {
+			if len(match) > 1 {
+				values = append(values, strings.TrimSpace(match[1]))
+			}
+		}
+		value = strings.Join(values, "\n")
 	}
 
 	if value == "" {

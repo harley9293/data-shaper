@@ -27,19 +27,30 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 		nameToCell := getExistFieldMap(f, sheet.Name, sheet.Repeated)
 		availableIndex := getAvailableIndex(f, sheet.Name, sheet.Repeated)
 		for _, field := range sheet.FieldList {
-			if _, ok := nameToCell[field.Name]; !ok {
+			cellIndex := ""
+			if existIndex, ok := nameToCell[field.Name]; !ok {
 				if sheet.Repeated {
-					err = setRepeatedCell(f, sheet.Name, availableIndex, field.Name)
+					cellIndex, err = setRepeatedCell(f, sheet.Name, availableIndex, field)
 					if err != nil {
 						return err
 					}
 				} else {
-					err = setConstCell(f, sheet.Name, availableIndex, field.Name)
+					cellIndex, err = setConstCell(f, sheet.Name, availableIndex, field)
 					if err != nil {
 						return err
 					}
 				}
 				availableIndex++
+			} else {
+				if sheet.Repeated {
+					cellIndex = fmt.Sprintf("%s%d", string(rune('A'+existIndex)), 1)
+				} else {
+					cellIndex = fmt.Sprintf("A%d", existIndex+1)
+				}
+			}
+			err = setCellComment(f, sheet.Name, cellIndex, field)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -92,34 +103,51 @@ func getAvailableIndex(f *excelize.File, sheetName string, isRepeated bool) int 
 	}
 }
 
-func setRepeatedCell(f *excelize.File, sheetName string, availableIndex int, cellValue string) error {
-	styleID, err := getTextStyleID(f)
+func setCellComment(f *excelize.File, sheetName string, cellIndex string, field core.FieldSchema) error {
+	_ = f.DeleteComment(sheetName, cellIndex)
+	err := f.AddComment(sheetName, excelize.Comment{
+		Cell:   cellIndex,
+		Text:   field.MessageName + "\n" + field.MessageType.String() + "\n\n" + field.Note,
+		Height: 400,
+		Width:  400,
+	})
 	if err != nil {
-		return err
-	}
-	if err = f.SetCellValue(sheetName, fmt.Sprintf("%s1", string(rune('A'+availableIndex))), cellValue); err != nil {
-		return err
-	}
-	if err = f.SetCellStyle(sheetName, fmt.Sprintf("%s2", string(rune('A'+availableIndex))), fmt.Sprintf("%s10", string(rune('A'+availableIndex))), styleID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func setConstCell(f *excelize.File, sheetName string, availableIndex int, cellValue string) error {
+func setRepeatedCell(f *excelize.File, sheetName string, availableIndex int, field core.FieldSchema) (string, error) {
 	styleID, err := getTextStyleID(f)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if err = f.SetCellValue(sheetName, fmt.Sprintf("A%d", availableIndex+1), cellValue); err != nil {
-		return err
+	cellIndex := fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1)
+	if err = f.SetCellValue(sheetName, cellIndex, field.Name); err != nil {
+		return "", err
 	}
-	if err = f.SetCellStyle(sheetName, fmt.Sprintf("B1"), fmt.Sprintf("B10"), styleID); err != nil {
-		return err
+	if err = f.SetCellStyle(sheetName, fmt.Sprintf("%s2", string(rune('A'+availableIndex))), fmt.Sprintf("%s10", string(rune('A'+availableIndex))), styleID); err != nil {
+		return "", err
 	}
 
-	return nil
+	return cellIndex, nil
+}
+
+func setConstCell(f *excelize.File, sheetName string, availableIndex int, field core.FieldSchema) (string, error) {
+	styleID, err := getTextStyleID(f)
+	if err != nil {
+		return "", err
+	}
+	cellIndex := fmt.Sprintf("A%d", availableIndex+1)
+	if err = f.SetCellValue(sheetName, cellIndex, field.Name); err != nil {
+		return "", err
+	}
+	if err = f.SetCellStyle(sheetName, fmt.Sprintf("B1"), fmt.Sprintf("B10"), styleID); err != nil {
+		return "", err
+	}
+
+	return cellIndex, nil
 }
 
 func getTextStyleID(f *excelize.File) (int, error) {
