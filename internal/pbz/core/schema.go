@@ -10,6 +10,7 @@ type FieldSchema struct {
 type SheetSchema struct {
 	Name        string
 	MessageName string
+	Repeated    bool
 	FieldList   []FieldSchema
 
 	ValueSize int

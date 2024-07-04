@@ -70,4 +70,23 @@ func TestDataParser_Parse(t *testing.T) {
 			}
 		}
 	}
+
+	if schema.SheetList[2].ValueSize != 1 {
+		t.Errorf("Parse() schema.SheetList[2].ValueSize = %v, want %v", schema.SheetList[2].ValueSize, 1)
+		return
+	}
+
+	for _, field := range schema.SheetList[2].FieldList {
+		if field.Name == "测试常量字段1" {
+			if field.Values[0] != "1" {
+				t.Errorf("Parse() field.Values = %v, want %v", field.Values, []string{"1"})
+				return
+			}
+		} else if field.Name == "测试常量字段2" {
+			if field.Values[0] != "2" {
+				t.Errorf("Parse() field.Values = %v, want %v", field.Values, []string{"2"})
+				return
+			}
+		}
+	}
 }

@@ -36,7 +36,7 @@ func (p *ProtoParser) Parse(filePath string, protoSchema *core.ProtoExcelSchema)
 			protoSchema.FilePath += getValueFromComments(md.GetSourceInfo().LeadingComments, "wrapper", md.GetName()) + ".xlsx"
 			protoSchema.MessageName = md.GetName()
 			for _, sheet := range md.GetFields() {
-				newSheet := core.SheetSchema{Name: getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName()), MessageName: sheet.GetName()}
+				newSheet := core.SheetSchema{Name: getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName()), MessageName: sheet.GetName(), Repeated: sheet.IsRepeated()}
 				mmd := fd.FindMessage(sheet.GetMessageType().GetFullyQualifiedName())
 				if mmd == nil {
 					return errors.New(fmt.Sprintf("%s message not found in proto file", sheet.GetMessageType().GetFullyQualifiedName()))

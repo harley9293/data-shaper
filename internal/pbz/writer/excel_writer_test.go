@@ -22,7 +22,7 @@ func Test_saveData(t *testing.T) {
 	}
 
 	excelWriter := &ExcelWriter{}
-	err = excelWriter.Write(TestExcelPath+"测试配置.xlsx", schema)
+	err = excelWriter.Write(TestExcelPath+"测试配置读取.xlsx", schema)
 	if err != nil {
 		t.Errorf("saveData() err = %v", err)
 		return

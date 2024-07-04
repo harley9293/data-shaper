@@ -19,23 +19,50 @@ func (parser *DataParser) Parse(filePath string, protoSchema *core.ProtoExcelSch
 			continue
 		}
 
-		if len(rows) <= 1 {
-			continue
-		}
+		if sheet.Repeated {
+			if len(rows) <= 1 {
+				continue
+			}
 
-		protoSchema.SheetList[sheetIndex].ValueSize = len(rows) - 1
-		for excelIndex, cell := range rows[0] {
-			for fieldIndex, field := range sheet.FieldList {
-				if field.Name != cell {
+			protoSchema.SheetList[sheetIndex].ValueSize = len(rows) - 1
+			for excelIndex, cell := range rows[0] {
+				for fieldIndex, field := range sheet.FieldList {
+					if field.Name != cell {
+						continue
+					}
+
+					for i := 1; i < len(rows); i++ {
+						cellValue := rows[i][excelIndex]
+						sheet.FieldList[fieldIndex].Values = append(sheet.FieldList[fieldIndex].Values, cellValue)
+					}
+
+					break
+				}
+			}
+		} else {
+			if len(rows) < 1 {
+				continue
+			}
+
+			protoSchema.SheetList[sheetIndex].ValueSize = 1
+			for _, row := range rows {
+				if len(row) < 1 {
 					continue
 				}
-
-				for i := 1; i < len(rows); i++ {
-					cellValue := rows[i][excelIndex]
-					sheet.FieldList[fieldIndex].Values = append(sheet.FieldList[fieldIndex].Values, cellValue)
+				fieldName := row[0]
+				fieldValue := ""
+				if len(row) > 1 {
+					fieldValue = row[1]
 				}
 
-				break
+				for fieldIndex, field := range sheet.FieldList {
+					if field.Name != fieldName {
+						continue
+					}
+
+					sheet.FieldList[fieldIndex].Values = append(sheet.FieldList[fieldIndex].Values, fieldValue)
+					break
+				}
 			}
 		}
 	}

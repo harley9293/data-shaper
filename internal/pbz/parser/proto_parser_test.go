@@ -28,7 +28,7 @@ func Test_parseProto_all(t *testing.T) {
 		return
 	}
 
-	if len(schema.SheetList) != 2 {
+	if len(schema.SheetList) != 3 {
 		t.Errorf("parseProto() len(schema.SheetList) = %v, want %v", len(schema.SheetList), 2)
 		return
 	}
@@ -36,6 +36,11 @@ func Test_parseProto_all(t *testing.T) {
 	sheet1 := schema.SheetList[0]
 	if sheet1.Name != "测试页签1" {
 		t.Errorf("parseProto() schema.SheetList[0].sheetName = %v, want %v", schema.SheetList[0].Name, "测试页签1")
+		return
+	}
+
+	if sheet1.Repeated != true {
+		t.Errorf("parseProto() schema.SheetList[0].Repeated = %v, want %v", schema.SheetList[0].Repeated, true)
 		return
 	}
 
@@ -84,6 +89,12 @@ func Test_parseProto_all(t *testing.T) {
 
 	if field3.MessageName != "test_field_3" {
 		t.Errorf("parseProto() field3.MessageName = %v, want %v", field3.MessageName, "test_field_3")
+		return
+	}
+
+	sheetConst := schema.SheetList[2]
+	if sheetConst.Repeated != false {
+		t.Errorf("parseProto() schema.SheetList[2].Repeated = %v, want %v", schema.SheetList[2].Repeated, false)
 		return
 	}
 }

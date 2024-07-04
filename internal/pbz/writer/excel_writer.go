@@ -16,16 +16,6 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 		f = excelize.NewFile()
 	}
 
-	textFmt := "@"
-	style := &excelize.Style{
-		CustomNumFmt: &textFmt,
-	}
-
-	styleID, err := f.NewStyle(style)
-	if err != nil {
-		return err
-	}
-
 	for _, sheet := range protoSchema.SheetList {
 		if !hasSheet(f, sheet.Name) {
 			_, err = f.NewSheet(sheet.Name)
@@ -34,15 +24,20 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 			}
 		}
 
-		nameToCell := getExistFieldMap(f, sheet.Name)
-		availableIndex := getAvailableIndex(f, sheet.Name)
+		nameToCell := getExistFieldMap(f, sheet.Name, sheet.Repeated)
+		availableIndex := getAvailableIndex(f, sheet.Name, sheet.Repeated)
 		for _, field := range sheet.FieldList {
 			if _, ok := nameToCell[field.Name]; !ok {
-				if err = f.SetCellValue(sheet.Name, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 1), field.Name); err != nil {
-					return err
-				}
-				if err = f.SetCellStyle(sheet.Name, fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 2), fmt.Sprintf("%s%d", string(rune('A'+availableIndex)), 10), styleID); err != nil {
-					return err
+				if sheet.Repeated {
+					err = setRepeatedCell(f, sheet.Name, availableIndex, field.Name)
+					if err != nil {
+						return err
+					}
+				} else {
+					err = setConstCell(f, sheet.Name, availableIndex, field.Name)
+					if err != nil {
+						return err
+					}
 				}
 				availableIndex++
 			}
@@ -50,7 +45,7 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 	}
 
 	_ = f.DeleteSheet("Sheet1")
-	if err = f.SaveAs(protoSchema.FilePath); err != nil {
+	if err = f.SaveAs(filePath); err != nil {
 		return err
 	}
 
@@ -67,26 +62,76 @@ func hasSheet(f *excelize.File, sheetName string) bool {
 	return false
 }
 
-func getExistFieldMap(f *excelize.File, sheetName string) map[string]int {
+func getExistFieldMap(f *excelize.File, sheetName string, isRepeated bool) map[string]int {
 	rows, _ := f.GetRows(sheetName)
 	nameToCell := make(map[string]int)
-	if len(rows) > 0 {
-		for index, field := range rows[0] {
-			nameToCell[field] = index
+	if isRepeated {
+		if len(rows) > 0 {
+			for index, field := range rows[0] {
+				nameToCell[field] = index
+			}
+		}
+	} else {
+		for i := 0; i < len(rows); i++ {
+			nameToCell[rows[i][0]] = i
 		}
 	}
 	return nameToCell
 }
 
-func getAvailableIndex(f *excelize.File, sheetName string) int {
+func getAvailableIndex(f *excelize.File, sheetName string, isRepeated bool) int {
 	rows, _ := f.GetRows(sheetName)
-	nameToCell := make(map[string]int)
-	availableIndex := 0
-	if len(rows) > 0 {
-		for index, field := range rows[0] {
-			nameToCell[field] = index
-			availableIndex = index + 1
+	if isRepeated {
+		if len(rows) > 0 {
+			return len(rows[0])
+		} else {
+			return 0
 		}
+	} else {
+		return len(rows)
 	}
-	return availableIndex
+}
+
+func setRepeatedCell(f *excelize.File, sheetName string, availableIndex int, cellValue string) error {
+	styleID, err := getTextStyleID(f)
+	if err != nil {
+		return err
+	}
+	if err = f.SetCellValue(sheetName, fmt.Sprintf("%s1", string(rune('A'+availableIndex))), cellValue); err != nil {
+		return err
+	}
+	if err = f.SetCellStyle(sheetName, fmt.Sprintf("%s2", string(rune('A'+availableIndex))), fmt.Sprintf("%s10", string(rune('A'+availableIndex))), styleID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setConstCell(f *excelize.File, sheetName string, availableIndex int, cellValue string) error {
+	styleID, err := getTextStyleID(f)
+	if err != nil {
+		return err
+	}
+	if err = f.SetCellValue(sheetName, fmt.Sprintf("A%d", availableIndex+1), cellValue); err != nil {
+		return err
+	}
+	if err = f.SetCellStyle(sheetName, fmt.Sprintf("B1"), fmt.Sprintf("B10"), styleID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getTextStyleID(f *excelize.File) (int, error) {
+	textFmt := "@"
+	style := &excelize.Style{
+		CustomNumFmt: &textFmt,
+	}
+
+	styleID, err := f.NewStyle(style)
+	if err != nil {
+		return 0, err
+	}
+
+	return styleID, nil
 }
