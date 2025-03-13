@@ -3,17 +3,16 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"github.com/harley9293/data-shaper/internal/pbz/core"
-	"github.com/jhump/protoreflect/desc/protoparse"
 	"regexp"
 	"strings"
+
+	"github.com/harley9293/data-shaper/internal/pbz/schema"
+	"github.com/jhump/protoreflect/desc/protoparse"
 )
 
-type ProtoParser struct{}
-
-func (p *ProtoParser) Parse(filePath string, protoSchema *core.ProtoExcelSchema) error {
+func Proto(filePath string) (*schema.Proto, error) {
 	if !strings.HasSuffix(filePath, "proto") {
-		return errors.New("file must be a proto file")
+		return nil, errors.New("必须是proto文件")
 	}
 
 	parse := protoparse.Parser{
@@ -22,9 +21,10 @@ func (p *ProtoParser) Parse(filePath string, protoSchema *core.ProtoExcelSchema)
 
 	files, err := parse.ParseFiles(filePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	proto := &schema.Proto{}
 	fd := files[0]
 	mds := fd.GetMessageTypes()
 
@@ -34,28 +34,28 @@ func (p *ProtoParser) Parse(filePath string, protoSchema *core.ProtoExcelSchema)
 		}
 
 		if hasKeyFromComments(md.GetSourceInfo().LeadingComments, "wrapper") {
-			protoSchema.FilePath += getValueFromComments(md.GetSourceInfo().LeadingComments, "wrapper", md.GetName()) + ".xlsx"
-			protoSchema.MessageName = md.GetName()
+			proto.Name = getValueFromComments(md.GetSourceInfo().LeadingComments, "wrapper", md.GetName())
+			proto.MessageName = md.GetName()
 			for _, sheet := range md.GetFields() {
-				newSheet := core.SheetSchema{Name: getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName()), MessageName: sheet.GetName(), Repeated: sheet.IsRepeated()}
+				newSheet := schema.Sheet{Name: getValueFromComments(sheet.GetSourceInfo().LeadingComments, "name", sheet.GetName()), MessageName: sheet.GetName()}
 				mmd := fd.FindMessage(sheet.GetMessageType().GetFullyQualifiedName())
 				if mmd == nil {
-					return errors.New(fmt.Sprintf("%s message not found in proto file", sheet.GetMessageType().GetFullyQualifiedName()))
+					return nil, errors.New(fmt.Sprintf("%s message not found in proto file", sheet.GetMessageType().GetFullyQualifiedName()))
 				}
 
 				for _, field := range mmd.GetFields() {
 					fieldName := getValueFromComments(field.GetSourceInfo().LeadingComments, "name", field.GetName())
 					note := getValueFromComments(field.GetSourceInfo().LeadingComments, "note", "")
-					newSheet.FieldList = append(newSheet.FieldList, core.FieldSchema{Name: fieldName, MessageName: field.GetName(), MessageType: field.GetType(), Note: note})
+					newSheet.FieldList = append(newSheet.FieldList, schema.Field{Name: fieldName, MessageName: field.GetName(), MessageType: field.GetType(), Note: note})
 				}
-				protoSchema.SheetList = append(protoSchema.SheetList, newSheet)
+				proto.SheetList = append(proto.SheetList, newSheet)
 			}
 
-			return nil
+			return proto, nil
 		}
 	}
 
-	return errors.New("no wrapper found in proto file")
+	return nil, errors.New("没有wrapper found in proto file")
 }
 
 func hasKeyFromComments(comments *string, key string) bool {

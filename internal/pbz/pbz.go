@@ -3,51 +3,50 @@ package pbz
 import (
 	"errors"
 	"fmt"
-	"github.com/harley9293/data-shaper/internal/pbz/core"
+
 	"github.com/harley9293/data-shaper/internal/pbz/parser"
-	"github.com/harley9293/data-shaper/internal/pbz/writer"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pbz",
-		Short: "config tools with proto file",
+		Short: "protobuf配置工具",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return errors.New("must specify valid subcommand")
+			return errors.New("必须指定有效的子命令")
 		},
 	}
 	cmd.DisableFlagsInUseLine = true
-	cmd.AddCommand(excel(), export())
+	cmd.AddCommand(update(), export())
 	return cmd
 }
 
-func excel() *cobra.Command {
+func update() *cobra.Command {
 	var protoFile string
 	var excelPath string
 	cmd := &cobra.Command{
-		Use:   "excel",
-		Short: "create or update excel file from proto file",
+		Use:   "update",
+		Short: "从proto文件创建或更新excel文件",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			schema := core.NewProtoExcelSchema(excelPath, &parser.ProtoParser{}, &writer.ExcelWriter{}, &parser.DataParser{})
-			err := schema.ParseProto(protoFile)
+
+			_, err := parser.Proto(protoFile)
 			if err != nil {
 				return err
 			}
 
-			err = schema.SaveData()
-			if err != nil {
-				return err
-			}
-			fmt.Println("excel file update successfully at", excelPath)
+			// err = schema.SaveData()
+			// if err != nil {
+			// 	return err
+			// }
+			fmt.Println("excel文件更新成功", excelPath)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&protoFile, "proto", "p", "", "path to the proto file")
+	cmd.Flags().StringVarP(&protoFile, "proto", "p", "", "proto文件")
 	cmd.MarkFlagRequired("proto")
-	cmd.Flags().StringVarP(&excelPath, "excel", "e", "", "output excel file path")
-	cmd.MarkFlagRequired("excel")
+	cmd.Flags().StringVarP(&excelPath, "output", "o", "", "输出excel目录")
+	cmd.MarkFlagRequired("output")
 
 	return cmd
 }

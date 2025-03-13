@@ -14,20 +14,10 @@ message TestSheet
   double test_field_3 = 3;
 }
 
-message TestConstSheet
-{
-  // @name 测试常量字段1
-  string test_const_field_1 = 1;
-  // @name 测试常量字段2
-  int32 test_const_field_2 = 2;
-}
-
 // @wrapper 测试配置
 message TestConfig
 {
   // @name 测试页签1
   repeated TestSheet test_sheet_1 = 1;
   repeated TestSheet test_sheet_2 = 2;
-  // @name 测试常量页签
-  TestConstSheet test_const_sheet = 3;
 }

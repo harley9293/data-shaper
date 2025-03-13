@@ -1,15 +1,16 @@
 package main
 
 import (
+	"os"
+
 	"github.com/harley9293/data-shaper/internal/pbz"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "shaper",
-		Short: "for the conversion and generation between various types of file data",
+		Short: "用于各种文件格式之间的转换和生成",
 	}
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true

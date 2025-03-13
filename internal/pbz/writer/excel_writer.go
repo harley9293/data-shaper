@@ -3,20 +3,21 @@ package writer
 import (
 	"errors"
 	"fmt"
-	"github.com/harley9293/data-shaper/internal/pbz/core"
-	"github.com/xuri/excelize/v2"
 	"io/fs"
+
+	"github.com/harley9293/data-shaper/internal/pbz/schema"
+	"github.com/xuri/excelize/v2"
 )
 
 type ExcelWriter struct{}
 
-func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema) error {
+func (w *ExcelWriter) Write(filePath string, proto *schema.Proto) error {
 	f, err := excelize.OpenFile(filePath)
 	if errors.Is(err, fs.ErrNotExist) {
 		f = excelize.NewFile()
 	}
 
-	for _, sheet := range protoSchema.SheetList {
+	for _, sheet := range proto.SheetList {
 		if !hasSheet(f, sheet.Name) {
 			_, err = f.NewSheet(sheet.Name)
 			if err != nil {
@@ -24,29 +25,18 @@ func (w *ExcelWriter) Write(filePath string, protoSchema *core.ProtoExcelSchema)
 			}
 		}
 
-		nameToCell := getExistFieldMap(f, sheet.Name, sheet.Repeated)
-		availableIndex := getAvailableIndex(f, sheet.Name, sheet.Repeated)
+		nameToCell := getExistFieldMap(f, sheet.Name)
+		availableIndex := getAvailableIndex(f, sheet.Name)
 		for _, field := range sheet.FieldList {
 			cellIndex := ""
 			if existIndex, ok := nameToCell[field.Name]; !ok {
-				if sheet.Repeated {
-					cellIndex, err = setRepeatedCell(f, sheet.Name, availableIndex, field)
-					if err != nil {
-						return err
-					}
-				} else {
-					cellIndex, err = setConstCell(f, sheet.Name, availableIndex, field)
-					if err != nil {
-						return err
-					}
+				cellIndex, err = setRepeatedCell(f, sheet.Name, availableIndex, field)
+				if err != nil {
+					return err
 				}
 				availableIndex++
 			} else {
-				if sheet.Repeated {
-					cellIndex = fmt.Sprintf("%s%d", string(rune('A'+existIndex)), 1)
-				} else {
-					cellIndex = fmt.Sprintf("A%d", existIndex+1)
-				}
+				cellIndex = fmt.Sprintf("%s%d", string(rune('A'+existIndex)), 1)
 			}
 			err = setCellComment(f, sheet.Name, cellIndex, field)
 			if err != nil {
@@ -73,37 +63,27 @@ func hasSheet(f *excelize.File, sheetName string) bool {
 	return false
 }
 
-func getExistFieldMap(f *excelize.File, sheetName string, isRepeated bool) map[string]int {
+func getExistFieldMap(f *excelize.File, sheetName string) map[string]int {
 	rows, _ := f.GetRows(sheetName)
 	nameToCell := make(map[string]int)
-	if isRepeated {
-		if len(rows) > 0 {
-			for index, field := range rows[0] {
-				nameToCell[field] = index
-			}
-		}
-	} else {
-		for i := 0; i < len(rows); i++ {
-			nameToCell[rows[i][0]] = i
+	if len(rows) > 0 {
+		for index, field := range rows[0] {
+			nameToCell[field] = index
 		}
 	}
 	return nameToCell
 }
 
-func getAvailableIndex(f *excelize.File, sheetName string, isRepeated bool) int {
+func getAvailableIndex(f *excelize.File, sheetName string) int {
 	rows, _ := f.GetRows(sheetName)
-	if isRepeated {
-		if len(rows) > 0 {
-			return len(rows[0])
-		} else {
-			return 0
-		}
+	if len(rows) > 0 {
+		return len(rows[0])
 	} else {
-		return len(rows)
+		return 0
 	}
 }
 
-func setCellComment(f *excelize.File, sheetName string, cellIndex string, field core.FieldSchema) error {
+func setCellComment(f *excelize.File, sheetName string, cellIndex string, field schema.Field) error {
 	_ = f.DeleteComment(sheetName, cellIndex)
 	err := f.AddComment(sheetName, excelize.Comment{
 		Cell:   cellIndex,
@@ -118,7 +98,7 @@ func setCellComment(f *excelize.File, sheetName string, cellIndex string, field 
 	return nil
 }
 
-func setRepeatedCell(f *excelize.File, sheetName string, availableIndex int, field core.FieldSchema) (string, error) {
+func setRepeatedCell(f *excelize.File, sheetName string, availableIndex int, field schema.Field) (string, error) {
 	styleID, err := getTextStyleID(f)
 	if err != nil {
 		return "", err
@@ -134,7 +114,7 @@ func setRepeatedCell(f *excelize.File, sheetName string, availableIndex int, fie
 	return cellIndex, nil
 }
 
-func setConstCell(f *excelize.File, sheetName string, availableIndex int, field core.FieldSchema) (string, error) {
+func setConstCell(f *excelize.File, sheetName string, availableIndex int, field schema.Field) (string, error) {
 	styleID, err := getTextStyleID(f)
 	if err != nil {
 		return "", err

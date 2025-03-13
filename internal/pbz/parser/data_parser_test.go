@@ -1,23 +1,17 @@
 package parser
 
 import (
-	"github.com/harley9293/data-shaper/internal/pbz/core"
 	"testing"
 )
 
 func TestDataParser_Parse(t *testing.T) {
-	schema := &core.ProtoExcelSchema{
-		FilePath: TestExcelPath,
-	}
-	protoParser := &ProtoParser{}
-	err := protoParser.Parse(TestExcelPath+"test_all.proto", schema)
+	schema, err := Proto(TestExcelPath + "test_all.proto")
 	if err != nil {
 		t.Errorf("ParseProto() error = %v", err)
 		return
 	}
 
-	dataParser := &DataParser{}
-	err = dataParser.Parse(TestExcelPath+"测试配置读取.xlsx", schema)
+	err = Data(TestExcelPath+"测试配置读取.xlsx", schema)
 	if err != nil {
 		t.Errorf("Parse() error = %v", err)
 		return
@@ -66,25 +60,6 @@ func TestDataParser_Parse(t *testing.T) {
 		} else if field.Name == "test_field_3" {
 			if field.Values[0] != "10000" || field.Values[1] != "100000" {
 				t.Errorf("Parse() field.Values = %v, want %v", field.Values, []string{"10000", "100000"})
-				return
-			}
-		}
-	}
-
-	if schema.SheetList[2].ValueSize != 1 {
-		t.Errorf("Parse() schema.SheetList[2].ValueSize = %v, want %v", schema.SheetList[2].ValueSize, 1)
-		return
-	}
-
-	for _, field := range schema.SheetList[2].FieldList {
-		if field.Name == "测试常量字段1" {
-			if field.Values[0] != "1" {
-				t.Errorf("Parse() field.Values = %v, want %v", field.Values, []string{"1"})
-				return
-			}
-		} else if field.Name == "测试常量字段2" {
-			if field.Values[0] != "2" {
-				t.Errorf("Parse() field.Values = %v, want %v", field.Values, []string{"2"})
 				return
 			}
 		}
